@@ -87,7 +87,7 @@ flowchart TD
     end
 
     subgraph Serving["🔍 Serving Layer"]
-        API[FastAPI\nPOST /predict · GET /student/{id}\nGET /cohort/{course_id} · GET /health]
+        API[FastAPI\nPOST /predict · GET /student\nGET /cohort · GET /health]
         UI[Streamlit Dashboard\nEngagement heatmap · At-risk roster\nCohort trends · Course health]
     end
 
