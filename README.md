@@ -24,53 +24,53 @@ Academic advisors find out a student is at dropout risk when exam results come b
 
 ```mermaid
 flowchart TD
-    subgraph SIM["🎓 Student Simulator"]
+    subgraph SIM["Student Simulator"]
         S1[Engaged · Passive · At-risk\nNight owl · Ghost]
         S2[16-week academic calendar\nOrientation → Exam surge]
     end
 
-    subgraph KAFKA["📨 Confluent Cloud — Kafka + Avro Schema Registry"]
+    subgraph KAFKA["Confluent Cloud — Kafka + Avro Schema Registry"]
         K1[student-events\n4 partitions · year_cohort key]
         K2[offline-events\nattendance · library · grades]
         K3[dead-letter-queue\n~5% malformed events]
     end
 
-    subgraph FLINK["⚡ Apache Flink — Docker"]
+    subgraph FLINK["Apache Flink — Docker"]
         F1[Session stitcher\n30-min inactivity timer]
         F2[Watermark strategy\n36h bounded out-of-orderness]
         F3[DLQ router\nlate + invalid events]
     end
 
-    subgraph BRONZE["🥉 Bronze — Delta Lake on S3"]
+    subgraph BRONZE["Bronze — Delta Lake on S3"]
         B1[bronze_student_events\npartitioned by event_date + year_cohort]
         B2[bronze_dlq_audit\nerror taxonomy · 7 types]
         SODA1{Soda Core\nBronze checks}
     end
 
-    subgraph SILVER["🥈 Silver — Delta Lake on S3"]
+    subgraph SILVER["Silver — Delta Lake on S3"]
         SV1[silver_sessions\nreconstructed · deduped]
         SV2[silver_student_events\nidentity-stitched · normalised]
         SV3[silver_offline_events\nattendance · library · grades]
         SODA2{Soda Core\nSilver checks}
     end
 
-    subgraph GOLD["🥇 Gold — dbt Core + Delta Lake"]
+    subgraph GOLD["Gold — dbt Core + Delta Lake"]
         G1[student_engagement_score\ndropout_risk_cohort]
         G2[course_content_engagement\nquiz_difficulty_index]
         G3[department_adoption_weekly\nplatform_retention_cohort]
         SODA3{Soda Core\nGold checks}
     end
 
-    subgraph AIRFLOW["🔁 Apache Airflow — Docker"]
+    subgraph AIRFLOW["Apache Airflow — Docker"]
         A1[Advisor DAG\nevery 5 min]
         A2[Faculty DAG\ndaily 6am]
         A3[Admin DAG\nMonday 7am]
     end
 
-    subgraph SUPERSET["📊 Apache Superset — Docker"]
-        D1[👩‍💼 Advisor view\nAt-risk students · live]
-        D2[👨‍🏫 Faculty view\nContent engagement · daily]
-        D3[🏛 Admin view\nAdoption % · weekly]
+    subgraph SUPERSET["Apache Superset — Docker"]
+        D1[Advisor view\nAt-risk students · live]
+        D2[Faculty view\nContent engagement · daily]
+        D3[Admin view\nAdoption % · weekly]
     end
 
     SIM -->|online events · Avro| K1
