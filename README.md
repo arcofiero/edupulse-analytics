@@ -9,7 +9,7 @@
 [![Soda Core](https://img.shields.io/badge/Soda_Core-Data_Quality-1DB954)](https://soda.io)
 [![MLflow](https://img.shields.io/badge/MLflow-Model_Registry-0194E2?logo=mlflow&logoColor=white)](https://mlflow.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Superset](https://img.shields.io/badge/Apache_Superset-Dashboard-20A6C9?logo=apache&logoColor=white)](https://superset.apache.org)
 [![OpenLineage](https://img.shields.io/badge/OpenLineage-Lineage-FF6B35)](https://openlineage.io)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -88,7 +88,7 @@ flowchart TD
 
     subgraph Serving["🔍 Serving Layer"]
         API[FastAPI\nPOST /predict · GET /student\nGET /cohort · GET /health]
-        UI[Streamlit Dashboard\nEngagement heatmap · At-risk roster\nCohort trends · Course health]
+        UI[Apache Superset\nEngagement heatmap · At-risk roster\nCohort trends · Course health]
     end
 
     subgraph Orchestration["🔁 Airflow Orchestration"]
@@ -140,7 +140,7 @@ flowchart TD
 | Orchestration | Apache Airflow 2.9 |
 | Lineage | OpenLineage / Marquez |
 | Query API | FastAPI |
-| Dashboard | Streamlit |
+| Dashboard | Apache Superset |
 | Infrastructure | Docker Compose |
 | Language | Python 3.11+ |
 
@@ -199,9 +199,13 @@ edupulse-analytics/
 │   └── evaluate.py                    # Precision, recall, F1 at 0.5 threshold; confusion matrix
 ├── api/
 │   ├── main.py                        # FastAPI app entry point
-│   └── endpoints.py                   # /predict, /student/{id}, /cohort/{course_id}, /health
-├── ui/
-│   └── app.py                         # Streamlit: engagement heatmap, at-risk roster, course health
+│   └── endpoints.py                   # /predict, /student, /cohort, /health
+├── observability/
+│   └── dashboards/                    # Superset dashboard exports (JSON)
+│       ├── engagement_heatmap.json
+│       ├── at_risk_roster.json
+│       ├── cohort_trends.json
+│       └── course_health.json
 ├── dags/
 │   ├── pipeline_full_dag.py           # Daily: ingest → Silver → Gold → Soda
 │   ├── at_risk_scoring_dag.py         # Nightly (Week 3+): feature engineering → predict → write flags
@@ -221,7 +225,7 @@ edupulse-analytics/
 │   ├── test_ml_pipeline.py
 │   └── test_api.py
 ├── conftest.py                        # Pytest fixtures (Spark session, mock Kafka, Delta tables)
-├── docker-compose.yml                 # Kafka · Airflow · MLflow · Marquez
+├── docker-compose.yml                 # Kafka · Airflow · MLflow · Superset · Marquez
 ├── requirements.txt
 ├── .env.example
 └── .gitignore
@@ -265,8 +269,9 @@ python scripts/bootstrap.py
 
 ```bash
 docker-compose up -d
-# Airflow UI:   http://localhost:8080
+# Airflow UI:    http://localhost:8080
 # MLflow UI:    http://localhost:5000
+# Superset UI:  http://localhost:8088  (admin / admin)
 # Marquez UI:   http://localhost:3000
 # FastAPI docs: http://localhost:8000/docs
 ```
@@ -307,8 +312,9 @@ python ml/predict.py
 # FastAPI
 uvicorn api.main:app --port 8000
 
-# Streamlit dashboard
-streamlit run ui/app.py
+# Superset is started by docker-compose (http://localhost:8088)
+# Import dashboard exports from observability/dashboards/
+superset import-dashboards -p observability/dashboards/
 ```
 
 ### 9. Run tests
@@ -418,7 +424,7 @@ ACID transactions and time travel. Bronze is the permanent record of every raw L
 | 6 | Soda Core contracts | 60+ checks across Bronze, Silver, Gold; Airflow quality DAG |
 | 7 | ML pipeline | Feature engineering, GradientBoostingClassifier, MLflow tracking, Model Registry |
 | 8 | Airflow orchestration | Full pipeline DAG, nightly scoring DAG, OpenLineage integration |
-| 9 | Serving layer | FastAPI endpoints, Streamlit dashboard, engagement heatmap |
+| 9 | Serving layer | FastAPI endpoints, Superset dashboard (5 charts), engagement heatmap |
 | 10 | Hardening + portfolio | Tests, load testing, LLD, known limitations |
 
 ---
