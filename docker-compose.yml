@@ -1,5 +1,3 @@
-version: "3.8"
-
 x-airflow-common: &airflow-common
   image: apache/airflow:2.9.3
   environment:
@@ -47,7 +45,6 @@ services:
 
   airflow-init:
     <<: *airflow-common
-    command: version
     entrypoint: /bin/bash
     command: >
       -c "airflow db init &&
