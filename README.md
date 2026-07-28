@@ -132,6 +132,12 @@ flowchart TD
 | IaC | Terraform | Confluent + S3 provisioning |
 | Language | Python 3.11+ | Consistent across all components |
 
+## Working Process
+
+Development moves through small, reviewable milestones on separate branches, with
+`main` kept stable. See [Project Process](docs/process.md) for branch flow,
+review expectations, and validation commands.
+
 ---
 
 ## Three Hard Problems
