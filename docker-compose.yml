@@ -105,6 +105,8 @@ services:
       SUPERSET_SECRET_KEY: edupulse-superset-secret
     volumes:
       - superset_data:/app/superset_home
+      - ./superset:/app/edupulse_superset
+      - ./.local/superset:/app/edupulse_superset_data
     depends_on:
       - postgres
     networks:

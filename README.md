@@ -232,6 +232,14 @@ make quality-local
 Quality checks are enforced after Bronze, Silver, and Gold in the local pipeline.
 If a layer fails, downstream layers do not run.
 
+**Local dashboard assets:**
+```bash
+make dashboards-local
+```
+
+This prepares Advisor, Faculty, and Admin dashboard datasets plus a manifest under
+`.local/superset`, using the Gold outputs produced by the local pipeline.
+
 ---
 
 ## DLQ Error Taxonomy

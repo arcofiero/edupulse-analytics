@@ -1,0 +1,66 @@
+dashboards:
+  - name: Advisor Risk Monitor
+    audience: Academic Advisor
+    freshness_sla: "< 5 min"
+    dataset: advisor_at_risk_students
+    charts:
+      - name: At-risk students by cohort
+        type: bar
+        metric: count
+        dimensions: [year_cohort, dropout_risk_band]
+      - name: Students needing review
+        type: table
+        columns:
+          - student_id
+          - year_cohort
+          - persona
+          - engagement_score
+          - attendance_count
+          - session_count
+          - dropout_risk_band
+      - name: Risk distribution
+        type: pie
+        metric: count
+        dimension: dropout_risk_band
+
+  - name: Faculty Content Engagement
+    audience: Lecturer
+    freshness_sla: Daily 6am
+    dataset: faculty_content_engagement
+    charts:
+      - name: Engagement by course and event type
+        type: heatmap
+        metric: event_count
+        dimensions: [course_id, event_type]
+      - name: Unique students by content interaction
+        type: bar
+        metric: unique_students
+        dimensions: [course_id, event_type]
+      - name: Engagement per student
+        type: table
+        columns:
+          - course_id
+          - event_type
+          - event_count
+          - unique_students
+          - engagement_per_student
+
+  - name: Department Adoption Weekly
+    audience: Department Head
+    freshness_sla: Monday 7am
+    dataset: admin_adoption_weekly
+    charts:
+      - name: Weekly active students by cohort
+        type: line
+        metric: active_students
+        dimensions: [week_start_date, year_cohort]
+      - name: Cohort adoption comparison
+        type: bar
+        metric: active_students
+        dimensions: [year_cohort]
+      - name: Adoption detail
+        type: table
+        columns:
+          - week_start_date
+          - year_cohort
+          - active_students
