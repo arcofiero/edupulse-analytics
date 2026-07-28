@@ -1,0 +1,16 @@
+name: "edupulse"
+version: "0.1.0"
+config-version: 2
+
+profile: "edupulse"
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+models:
+  edupulse:
+    silver:
+      +materialized: view
+    gold:
+      +materialized: table
