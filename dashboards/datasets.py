@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import sqlite3
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,7 @@ class DashboardDatasetBuilder:
             self._write_faculty_dataset(content_engagement),
             self._write_admin_dataset(adoption),
         ]
+        self._write_sqlite_database(datasets)
         self._write_manifest(datasets)
         return DashboardBuildResult(output_dir=str(self.output_dir), datasets=datasets)
 
@@ -145,6 +147,10 @@ class DashboardDatasetBuilder:
 
     def _write_manifest(self, datasets: list[DashboardDataset]) -> None:
         manifest = {
+            "database": {
+                "name": "EduPulse Local Analytics",
+                "sqlalchemy_uri": "sqlite:////app/edupulse_superset_data/edupulse_dashboards.db",
+            },
             "dashboards": [
                 {
                     "name": "Advisor Risk Monitor",
@@ -167,6 +173,29 @@ class DashboardDatasetBuilder:
         with (self.output_dir / "manifest.json").open("w", encoding="utf-8") as output_file:
             json.dump(manifest, output_file, indent=2, sort_keys=True)
             output_file.write("\n")
+
+    def _write_sqlite_database(self, datasets: list[DashboardDataset]) -> None:
+        db_path = self.output_dir / "edupulse_dashboards.db"
+        if db_path.exists():
+            db_path.unlink()
+
+        with sqlite3.connect(db_path) as connection:
+            for dataset in datasets:
+                csv_path = self.output_dir / dataset.file_name
+                with csv_path.open(encoding="utf-8") as input_file:
+                    rows = list(csv.DictReader(input_file))
+                if not rows:
+                    continue
+
+                columns = list(rows[0].keys())
+                quoted_columns = ", ".join(f'"{column}" TEXT' for column in columns)
+                placeholders = ", ".join("?" for _ in columns)
+                connection.execute(f'DROP TABLE IF EXISTS "{dataset.dataset_name}"')
+                connection.execute(f'CREATE TABLE "{dataset.dataset_name}" ({quoted_columns})')
+                connection.executemany(
+                    f'INSERT INTO "{dataset.dataset_name}" VALUES ({placeholders})',
+                    [[row[column] for column in columns] for row in rows],
+                )
 
     def _risk_sort(self, risk_band: str | None) -> int:
         ordering = {"high": 0, "medium": 1, "low": 2}

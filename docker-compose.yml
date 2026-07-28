@@ -97,9 +97,23 @@ services:
   superset:
     image: apache/superset:3.1.0
     ports:
-      - "8088:8088"
+      - "8089:8088"
     environment:
       SUPERSET_SECRET_KEY: edupulse-superset-secret
+      SUPERSET_LOAD_EXAMPLES: "no"
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      ADMIN_FIRST_NAME: EduPulse
+      ADMIN_LAST_NAME: Admin
+      ADMIN_EMAIL: admin@edupulse.local
+      SUPERSET_CONFIG_PATH: /app/edupulse_superset/superset_config.py
+      EDUPULSE_ANALYTICS_URI: sqlite:////app/edupulse_superset_data/edupulse_dashboards.db
+    command: >
+      /bin/bash -c "superset db upgrade &&
+        superset fab create-admin --username $${ADMIN_USERNAME} --firstname $${ADMIN_FIRST_NAME} --lastname $${ADMIN_LAST_NAME} --email $${ADMIN_EMAIL} --password $${ADMIN_PASSWORD} || true &&
+        superset init &&
+        python /app/edupulse_superset/provision_assets.py &&
+        superset run -h 0.0.0.0 -p 8088"
     volumes:
       - superset_data:/app/superset_home
       - ./superset:/app/edupulse_superset

@@ -12,8 +12,19 @@ Run the local pipeline and prepare dashboard datasets:
 make dashboards-local
 ```
 
-Generated CSV datasets and the manifest are written to `.local/superset`.
+Generated CSV datasets, a SQLite database, and the manifest are written to
+`.local/superset`.
 
 The dashboard chart definitions live in `superset/dashboard_specs.yml`. These
-specifications map the Gold outputs to Superset datasets and charts; once Superset
-is running, the CSV outputs can be registered as datasets for dashboard assembly.
+specifications map the Gold outputs to Superset datasets and charts. The SQLite
+database is mounted into the Superset container at:
+
+```text
+/app/edupulse_superset_data/edupulse_dashboards.db
+```
+
+Use this SQLAlchemy URI when registering the local analytics database in Superset:
+
+```text
+sqlite:////app/edupulse_superset_data/edupulse_dashboards.db
+```

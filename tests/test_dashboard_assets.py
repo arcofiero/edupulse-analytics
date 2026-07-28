@@ -1,5 +1,6 @@
 import csv
 import json
+import sqlite3
 from argparse import Namespace
 from pathlib import Path
 
@@ -92,6 +93,45 @@ def test_dashboard_manifest_maps_datasets_to_dashboards(tmp_path):
         "faculty_content_engagement.csv",
         "admin_adoption_weekly.csv",
     }
+    assert manifest["database"]["sqlalchemy_uri"] == (
+        "sqlite:////app/edupulse_superset_data/edupulse_dashboards.db"
+    )
+
+
+def test_dashboard_builder_writes_queryable_sqlite_database(tmp_path):
+    data_dir = tmp_path / "lakehouse"
+    output_dir = tmp_path / "superset"
+    run_pipeline(
+        Namespace(
+            data_dir=data_dir,
+            students=16,
+            weeks=1,
+            seed=1111,
+            limit=150,
+            malformed_rate=0.05,
+            clean=True,
+            skip_quality_gates=False,
+        )
+    )
+    DashboardDatasetBuilder(data_dir / "gold", output_dir).build()
+
+    with sqlite3.connect(output_dir / "edupulse_dashboards.db") as connection:
+        tables = {
+            row[0]
+            for row in connection.execute(
+                "select name from sqlite_master where type = 'table'"
+            )
+        }
+        advisor_count = connection.execute(
+            "select count(*) from advisor_at_risk_students"
+        ).fetchone()[0]
+
+    assert tables == {
+        "advisor_at_risk_students",
+        "faculty_content_engagement",
+        "admin_adoption_weekly",
+    }
+    assert advisor_count > 0
 
 
 def test_superset_specs_define_expected_dashboards():

@@ -25,6 +25,7 @@ def main() -> int:
             f"{dataset.dataset_name}: rows={dataset.row_count}, "
             f"file={args.output_dir / dataset.file_name}"
         )
+    print(f"sqlite: file={args.output_dir / 'edupulse_dashboards.db'}")
     return 0
 
 
