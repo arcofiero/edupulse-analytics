@@ -1,0 +1,15 @@
+checks for student_engagement_score:
+  - row_count > 0
+  - duplicate_count(student_id) = 0
+  - missing_count(engagement_score) = 0
+  - min(engagement_score) >= 0
+  - invalid_count(dropout_risk_band) = 0:
+      valid values: [low, medium, high]
+
+checks for course_content_engagement:
+  - row_count > 0
+  - min(event_count) > 0
+
+checks for department_adoption_weekly:
+  - row_count > 0
+  - min(active_students) > 0

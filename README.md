@@ -224,6 +224,14 @@ This generates simulator events, validates them against the event contract, rout
 invalid records to the Bronze DLQ audit table, builds Silver event/session outputs,
 and writes Gold engagement/adoption metrics under `.local/lakehouse`.
 
+**Local quality checks:**
+```bash
+make quality-local
+```
+
+Quality checks are enforced after Bronze, Silver, and Gold in the local pipeline.
+If a layer fails, downstream layers do not run.
+
 ---
 
 ## DLQ Error Taxonomy

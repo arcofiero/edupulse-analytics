@@ -1,0 +1,13 @@
+checks for silver_student_events:
+  - row_count > 0
+  - duplicate_count(event_id) = 0
+  - missing_count(student_key) = 0
+  - missing_count(event_date) = 0
+
+checks for silver_sessions:
+  - row_count > 0
+  - missing_count(session_id) = 0
+  - min(event_count) > 0
+
+checks for silver_offline_events:
+  - duplicate_count(event_id) = 0

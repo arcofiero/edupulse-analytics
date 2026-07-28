@@ -1,0 +1,1 @@
+"""Local quality contract checks."""
