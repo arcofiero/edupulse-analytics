@@ -1,4 +1,4 @@
-.PHONY: up down logs test simulate lint clean
+.PHONY: up down logs test simulate simulate-backfill pipeline-local lint clean
 
 up:
 	docker compose up -d
@@ -17,6 +17,9 @@ simulate:
 
 simulate-backfill:
 	python simulator/main.py --mode=backfill --weeks=16
+
+pipeline-local:
+	python -m pipeline.local --clean --weeks=1 --students=50 --seed=42 --limit=500
 
 lint:
 	ruff check .

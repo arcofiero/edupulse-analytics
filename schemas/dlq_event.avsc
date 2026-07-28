@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "DlqEvent",
+  "namespace": "edupulse.events",
+  "fields": [
+    {"name": "event_id", "type": ["null", "string"], "default": null},
+    {"name": "event_ts", "type": ["null", "string"], "default": null},
+    {"name": "produced_ts", "type": ["null", "string"], "default": null},
+    {"name": "student_id", "type": ["null", "string"], "default": null},
+    {"name": "event_type", "type": ["null", "string"], "default": null},
+    {"name": "course_id", "type": ["null", "string"], "default": null},
+    {"name": "year_cohort", "type": ["null", "int", "string"], "default": null},
+    {"name": "source", "type": ["null", "string"], "default": null},
+    {"name": "error_type", "type": "string"},
+    {"name": "validation_errors", "type": {"type": "array", "items": "string"}, "default": []},
+    {"name": "raw_payload", "type": "string"}
+  ]
+}

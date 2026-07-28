@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "StudentEvent",
+  "namespace": "edupulse.events",
+  "fields": [
+    {"name": "event_id", "type": "string"},
+    {"name": "event_ts", "type": "string"},
+    {"name": "produced_ts", "type": "string"},
+    {"name": "student_id", "type": ["null", "string"], "default": null},
+    {"name": "anonymous_id", "type": ["null", "string"], "default": null},
+    {"name": "device_id", "type": ["null", "string"], "default": null},
+    {"name": "session_hint_id", "type": ["null", "string"], "default": null},
+    {"name": "event_type", "type": "string"},
+    {"name": "course_id", "type": "string"},
+    {"name": "year_cohort", "type": "int"},
+    {"name": "persona", "type": "string"},
+    {"name": "source", "type": "string"},
+    {
+      "name": "properties",
+      "type": {
+        "type": "map",
+        "values": ["null", "string", "int", "long", "float", "double", "boolean"]
+      },
+      "default": {}
+    },
+    {"name": "is_malformed", "type": "boolean", "default": false}
+  ]
+}

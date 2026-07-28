@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: bronze
+    tables:
+      - name: bronze_student_events
+      - name: bronze_offline_events
+
+models:
+  - name: silver_student_events
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
+      - name: student_key
+        tests:
+          - not_null
+      - name: year_cohort
+        tests:
+          - not_null
+
+  - name: silver_offline_events
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
+      - name: student_id
+        tests:
+          - not_null

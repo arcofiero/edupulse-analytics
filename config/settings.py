@@ -20,6 +20,7 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 S3_BUCKET = os.getenv("S3_BUCKET", "edupulse-delta-lake")
 
 # Delta Lake paths
+LOCAL_DATA_DIR = os.getenv("LOCAL_DATA_DIR", ".local/lakehouse")
 BRONZE_PATH = os.getenv("BRONZE_PATH", f"s3://{S3_BUCKET}/bronze")
 SILVER_PATH = os.getenv("SILVER_PATH", f"s3://{S3_BUCKET}/silver")
 GOLD_PATH = os.getenv("GOLD_PATH", f"s3://{S3_BUCKET}/gold")

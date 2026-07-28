@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: student_engagement_score
+    columns:
+      - name: student_id
+        tests:
+          - not_null
+          - unique
+      - name: engagement_score
+        tests:
+          - not_null
+      - name: dropout_risk_band
+        tests:
+          - accepted_values:
+              values: ['low', 'medium', 'high']
+
+  - name: course_content_engagement
+    columns:
+      - name: course_id
+        tests:
+          - not_null
+      - name: event_count
+        tests:
+          - not_null
+
+  - name: department_adoption_weekly
+    columns:
+      - name: year_cohort
+        tests:
+          - not_null
+      - name: active_students
+        tests:
+          - not_null

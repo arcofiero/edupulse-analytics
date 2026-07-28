@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+import argparse
+import shutil
+from dataclasses import asdict
+from datetime import date
+from pathlib import Path
+
+from bronze.writer import BronzeWriter
+from gold.metrics import GoldMetricBuilder
+from silver.transform import SilverTransformer
+from simulator.generator import EventGenerator, SimulationConfig
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the local EduPulse pipeline.")
+    parser.add_argument("--data-dir", type=Path, default=Path(".local/lakehouse"))
+    parser.add_argument("--students", type=int, default=50)
+    parser.add_argument("--weeks", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--malformed-rate", type=float, default=0.05)
+    parser.add_argument("--clean", action="store_true")
+    return parser.parse_args()
+
+
+def run_pipeline(args: argparse.Namespace) -> dict[str, dict]:
+    if args.clean and args.data_dir.exists():
+        shutil.rmtree(args.data_dir)
+
+    config = SimulationConfig(
+        students=args.students,
+        semester_start_date=date(2025, 9, 1),
+        weeks=args.weeks,
+        seed=args.seed,
+        malformed_rate=args.malformed_rate,
+    )
+    generator = EventGenerator(config)
+    events = generator.iter_backfill(weeks=args.weeks)
+    if args.limit is not None:
+        events = _limited(events, args.limit)
+
+    bronze_result = BronzeWriter(args.data_dir / "bronze").write_events(events)
+    silver_result = SilverTransformer(args.data_dir / "bronze", args.data_dir / "silver").run()
+    gold_result = GoldMetricBuilder(args.data_dir / "silver", args.data_dir / "gold").run()
+
+    return {
+        "bronze": asdict(bronze_result),
+        "silver": asdict(silver_result),
+        "gold": asdict(gold_result),
+    }
+
+
+def _limited(events, limit: int):
+    for index, event in enumerate(events):
+        if index >= limit:
+            break
+        yield event
+
+
+def main() -> int:
+    summary = run_pipeline(parse_args())
+    for layer, counts in summary.items():
+        joined_counts = ", ".join(f"{key}={value}" for key, value in counts.items())
+        print(f"{layer}: {joined_counts}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

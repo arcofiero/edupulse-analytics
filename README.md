@@ -215,6 +215,15 @@ python simulator/main.py --mode=backfill --weeks=16  # full semester replay
 The local simulator emits newline-delimited JSON to stdout by default. Use
 `--limit` for smoke tests and `--output` to write events to a file.
 
+**Local pipeline smoke test:**
+```bash
+make pipeline-local
+```
+
+This generates simulator events, validates them against the event contract, routes
+invalid records to the Bronze DLQ audit table, builds Silver event/session outputs,
+and writes Gold engagement/adoption metrics under `.local/lakehouse`.
+
 ---
 
 ## DLQ Error Taxonomy
