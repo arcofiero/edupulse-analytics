@@ -212,6 +212,9 @@ python simulator/main.py --mode=live        # continuous real-time production
 python simulator/main.py --mode=backfill --weeks=16  # full semester replay
 ```
 
+The local simulator emits newline-delimited JSON to stdout by default. Use
+`--limit` for smoke tests and `--output` to write events to a file.
+
 ---
 
 ## DLQ Error Taxonomy
@@ -224,7 +227,7 @@ Every event routed to the Dead Letter Queue carries a structured `error_type` he
 - `duplicate_event`
 - `null_student_id`
 - `invalid_event_type`
-- `out_of_range_value`
+- `late_arrival`
 
 ---
 
