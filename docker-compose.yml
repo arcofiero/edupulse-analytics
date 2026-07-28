@@ -11,6 +11,17 @@ x-airflow-common: &airflow-common
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
+    - ./bronze:/opt/airflow/bronze
+    - ./config:/opt/airflow/config
+    - ./flink:/opt/airflow/flink
+    - ./gold:/opt/airflow/gold
+    - ./orchestration:/opt/airflow/orchestration
+    - ./pipeline:/opt/airflow/pipeline
+    - ./schemas:/opt/airflow/schemas
+    - ./silver:/opt/airflow/silver
+    - ./simulator:/opt/airflow/simulator
+    - ./soda:/opt/airflow/soda
+    - ./.local:/opt/airflow/.local
     - ./logs/airflow:/opt/airflow/logs
   depends_on:
     postgres:

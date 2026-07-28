@@ -1,0 +1,13 @@
+checks for bronze_student_events:
+  - row_count > 0
+  - duplicate_count(event_id) = 0
+  - missing_count(student_id) = 0
+  - missing_count(year_cohort) = 0
+
+checks for bronze_offline_events:
+  - duplicate_count(event_id) = 0
+  - missing_count(student_id) = 0
+
+checks for bronze_dlq_audit:
+  - missing_count(error_type) = 0
+  - missing_count(raw_payload) = 0
