@@ -1,4 +1,4 @@
-.PHONY: up down logs test simulate simulate-backfill pipeline-local quality-local lint clean
+.PHONY: up down logs test simulate simulate-backfill pipeline-local quality-local dashboards-local lint clean
 
 up:
 	docker compose up -d
@@ -23,6 +23,9 @@ pipeline-local:
 
 quality-local:
 	python -m soda.local --data-dir .local/lakehouse --layer all
+
+dashboards-local: pipeline-local
+	python -m dashboards.local --data-dir .local/lakehouse --output-dir .local/superset
 
 lint:
 	ruff check .
