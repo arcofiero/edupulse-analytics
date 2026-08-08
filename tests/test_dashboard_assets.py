@@ -1,11 +1,23 @@
 import csv
+import importlib.util
 import json
 import sqlite3
 from argparse import Namespace
 from pathlib import Path
+from types import SimpleNamespace
 
 from dashboards.datasets import DashboardDatasetBuilder
 from pipeline.local import run_pipeline
+
+
+def load_provision_assets_module():
+    module_path = Path(__file__).resolve().parents[1] / "superset" / "provision_assets.py"
+    spec = importlib.util.spec_from_file_location("edupulse_provision_assets", module_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_dashboard_builder_writes_stakeholder_analytics_datasets(tmp_path):
@@ -195,3 +207,22 @@ def test_superset_specs_define_expected_dashboards():
     assert "faculty_content_difficulty" in specs
     assert "admin_adoption_weekly" in specs
     assert "admin_cohort_engagement_summary" in specs
+
+
+def test_superset_dashboard_layout_places_charts_inside_rows():
+    provision_assets = load_provision_assets_module()
+
+    position = provision_assets.build_dashboard_position(
+        [SimpleNamespace(id=11), SimpleNamespace(id=12), SimpleNamespace(id=13)]
+    )
+
+    assert position["ROOT_ID"]["children"] == ["GRID_ID"]
+    assert position["GRID_ID"]["children"] == ["ROW-0", "ROW-1"]
+    assert position["ROW-0"]["children"] == ["CHART-11", "CHART-12"]
+    assert position["ROW-1"]["children"] == ["CHART-13"]
+    assert position["CHART-11"]["meta"]["width"] == 6
+    assert position["CHART-12"]["meta"]["width"] == 6
+    assert position["CHART-13"]["meta"]["width"] == 12
+    assert all(
+        not child.startswith("CHART-") for child in position["GRID_ID"]["children"]
+    )

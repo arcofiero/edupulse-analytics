@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-
-from superset.app import create_app
+from typing import Any, Protocol
 
 
 DATABASE_NAME = "EduPulse Local Analytics"
@@ -106,6 +105,56 @@ DATASETS = {
 }
 
 
+class ChartLike(Protocol):
+    id: int
+
+
+def build_dashboard_position(charts: list[ChartLike]) -> dict[str, Any]:
+    position: dict[str, Any] = {
+        "DASHBOARD_VERSION_KEY": "v2",
+        "ROOT_ID": {
+            "type": "ROOT",
+            "id": "ROOT_ID",
+            "children": ["GRID_ID"],
+            "meta": {"type": "DASHBOARD_ROOT_TYPE"},
+        },
+        "GRID_ID": {
+            "type": "GRID",
+            "id": "GRID_ID",
+            "children": [],
+            "meta": {},
+        },
+    }
+
+    for row_index in range(0, len(charts), 2):
+        row_charts = charts[row_index : row_index + 2]
+        row_id = f"ROW-{row_index // 2}"
+        position["GRID_ID"]["children"].append(row_id)
+        position[row_id] = {
+            "type": "ROW",
+            "id": row_id,
+            "children": [],
+            "meta": {"background": "BACKGROUND_TRANSPARENT"},
+        }
+
+        chart_width = 12 if len(row_charts) == 1 else 6
+        for chart in row_charts:
+            chart_node = f"CHART-{chart.id}"
+            position[row_id]["children"].append(chart_node)
+            position[chart_node] = {
+                "type": "CHART",
+                "id": chart_node,
+                "children": [],
+                "meta": {
+                    "chartId": chart.id,
+                    "height": 40,
+                    "width": chart_width,
+                },
+            }
+
+    return position
+
+
 def ensure_database(db, Database):
     database = db.session.query(Database).filter_by(database_name=DATABASE_NAME).one_or_none()
     if database is None:
@@ -159,20 +208,7 @@ def ensure_dashboard(db, Dashboard, dashboard_title: str, charts: list) -> None:
         .filter_by(dashboard_title=dashboard_title)
         .one_or_none()
     )
-    chart_nodes = [f"CHART-{chart.id}" for chart in charts]
-    position_json = {
-        "DASHBOARD_VERSION_KEY": "v2",
-        "ROOT_ID": {"type": "ROOT", "id": "ROOT_ID", "children": ["GRID_ID"]},
-        "GRID_ID": {"type": "GRID", "id": "GRID_ID", "children": chart_nodes},
-    }
-    for index, chart in enumerate(charts):
-        chart_node = f"CHART-{chart.id}"
-        position_json[chart_node] = {
-            "type": "CHART",
-            "id": chart_node,
-            "children": [],
-            "meta": {"chartId": chart.id, "height": 40, "width": 6 if index else 12},
-        }
+    position_json = build_dashboard_position(charts)
 
     if dashboard is None:
         dashboard = Dashboard(dashboard_title=dashboard_title)
@@ -206,6 +242,8 @@ def provision() -> None:
 
 
 if __name__ == "__main__":
+    from superset.app import create_app
+
     app = create_app()
     with app.app_context():
         provision()
