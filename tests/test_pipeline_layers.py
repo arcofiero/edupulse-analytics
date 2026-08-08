@@ -93,6 +93,7 @@ def test_local_pipeline_writes_bronze_silver_and_gold(tmp_path):
             limit=80,
             malformed_rate=0.1,
             clean=True,
+            skip_quality_gates=False,
         )
     )
 
@@ -101,6 +102,9 @@ def test_local_pipeline_writes_bronze_silver_and_gold(tmp_path):
     assert summary["silver"]["student_events"] > 0
     assert summary["silver"]["sessions"] > 0
     assert summary["gold"]["student_scores"] > 0
+    assert summary["gold"]["risk_signal_rows"] > 0
+    assert summary["gold"]["difficulty_rows"] > 0
+    assert summary["gold"]["cohort_rows"] > 0
     assert load_table(tmp_path / "gold", "student_engagement_score")
 
 
@@ -122,3 +126,38 @@ def test_silver_and_gold_can_run_from_bronze_outputs(tmp_path):
     assert silver_result.offline_events > 0
     assert gold_result.student_scores > 0
     assert gold_result.content_rows > 0
+    assert gold_result.difficulty_rows > 0
+    assert gold_result.cohort_rows > 0
+
+
+def test_gold_outputs_include_explainable_analytics(tmp_path):
+    generator = EventGenerator(
+        SimulationConfig(
+            students=16,
+            semester_start_date=date(2025, 9, 1),
+            malformed_rate=0,
+            seed=505,
+        )
+    )
+    BronzeWriter(tmp_path / "bronze").write_events(generator.iter_backfill(weeks=1))
+    SilverTransformer(tmp_path / "bronze", tmp_path / "silver").run()
+    GoldMetricBuilder(tmp_path / "silver", tmp_path / "gold").run()
+
+    scores = load_table(tmp_path / "gold", "student_engagement_score")
+    risk_signals = load_table(tmp_path / "gold", "student_risk_signals")
+    interventions = load_table(tmp_path / "gold", "advisor_intervention_queue")
+    difficulty = load_table(tmp_path / "gold", "content_difficulty_index")
+    cohorts = load_table(tmp_path / "gold", "cohort_engagement_summary")
+
+    assert scores
+    assert all(0 <= row["risk_score"] <= 100 for row in scores)
+    assert all(0 <= row["engagement_percentile"] <= 100 for row in scores)
+    assert all(row["risk_reasons"] for row in scores)
+    assert risk_signals
+    assert difficulty
+    assert all(0 <= row["difficulty_index"] <= 100 for row in difficulty)
+    assert cohorts
+    assert all(0 <= row["high_risk_rate"] <= 1 for row in cohorts)
+    assert [row["queue_rank"] for row in interventions] == list(
+        range(1, len(interventions) + 1)
+    )

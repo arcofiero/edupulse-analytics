@@ -28,3 +28,14 @@ Use this SQLAlchemy URI when registering the local analytics database in Superse
 ```text
 sqlite:////app/edupulse_superset_data/edupulse_dashboards.db
 ```
+
+The local Superset container provisions the analytics database, six datasets,
+six charts, and three dashboards on startup via `superset/provision_assets.py`.
+The provisioned datasets are:
+
+- `advisor_at_risk_students`
+- `advisor_engagement_signals`
+- `faculty_content_engagement`
+- `faculty_content_difficulty`
+- `admin_adoption_weekly`
+- `admin_cohort_engagement_summary`

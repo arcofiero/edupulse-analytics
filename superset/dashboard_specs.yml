@@ -4,24 +4,36 @@ dashboards:
     freshness_sla: "< 5 min"
     dataset: advisor_at_risk_students
     charts:
+      - name: Intervention priority queue
+        type: table
+        dataset: advisor_at_risk_students
+        columns:
+          - queue_rank
+          - student_id
+          - year_cohort
+          - risk_score
+          - engagement_percentile
+          - dropout_risk_band
+          - risk_reasons
+          - recommended_action
       - name: At-risk students by cohort
         type: bar
+        dataset: advisor_at_risk_students
         metric: count
         dimensions: [year_cohort, dropout_risk_band]
-      - name: Students needing review
+      - name: Risk feature explainability
         type: table
+        dataset: advisor_engagement_signals
         columns:
           - student_id
           - year_cohort
           - persona
-          - engagement_score
-          - attendance_count
-          - session_count
-          - dropout_risk_band
-      - name: Risk distribution
-        type: pie
-        metric: count
-        dimension: dropout_risk_band
+          - risk_score
+          - active_day_count
+          - attendance_rate
+          - quiz_accuracy
+          - late_submission_count
+          - recommended_action
 
   - name: Faculty Content Engagement
     audience: Lecturer
@@ -30,20 +42,27 @@ dashboards:
     charts:
       - name: Engagement by course and event type
         type: heatmap
+        dataset: faculty_content_engagement
         metric: event_count
         dimensions: [course_id, event_type]
       - name: Unique students by content interaction
         type: bar
+        dataset: faculty_content_engagement
         metric: unique_students
         dimensions: [course_id, event_type]
-      - name: Engagement per student
+      - name: Content difficulty index
         type: table
+        dataset: faculty_content_difficulty
         columns:
           - course_id
-          - event_type
-          - event_count
+          - difficulty_index
+          - content_health_band
+          - quiz_accuracy
+          - quiz_attempts
+          - quiz_answers
+          - video_events
+          - assignment_submits
           - unique_students
-          - engagement_per_student
 
   - name: Department Adoption Weekly
     audience: Department Head
@@ -52,15 +71,23 @@ dashboards:
     charts:
       - name: Weekly active students by cohort
         type: line
+        dataset: admin_adoption_weekly
         metric: active_students
         dimensions: [week_start_date, year_cohort]
       - name: Cohort adoption comparison
         type: bar
-        metric: active_students
+        dataset: admin_adoption_weekly
+        metric: adoption_rate
         dimensions: [year_cohort]
-      - name: Adoption detail
+      - name: Cohort engagement benchmarks
         type: table
+        dataset: admin_cohort_engagement_summary
         columns:
-          - week_start_date
           - year_cohort
-          - active_students
+          - persona
+          - student_count
+          - avg_engagement_score
+          - avg_risk_score
+          - high_risk_rate
+          - avg_attendance_rate
+          - avg_quiz_accuracy

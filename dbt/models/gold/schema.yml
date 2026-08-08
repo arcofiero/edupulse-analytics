@@ -10,10 +10,33 @@ models:
       - name: engagement_score
         tests:
           - not_null
+      - name: risk_score
+        tests:
+          - not_null
       - name: dropout_risk_band
         tests:
           - accepted_values:
               values: ['low', 'medium', 'high']
+
+  - name: student_risk_signals
+    columns:
+      - name: student_id
+        tests:
+          - not_null
+          - unique
+      - name: recommended_action
+        tests:
+          - not_null
+
+  - name: advisor_intervention_queue
+    columns:
+      - name: queue_rank
+        tests:
+          - not_null
+          - unique
+      - name: student_id
+        tests:
+          - not_null
 
   - name: course_content_engagement
     columns:
@@ -24,11 +47,34 @@ models:
         tests:
           - not_null
 
+  - name: content_difficulty_index
+    columns:
+      - name: course_id
+        tests:
+          - not_null
+          - unique
+      - name: content_health_band
+        tests:
+          - accepted_values:
+              values: ['healthy', 'watch', 'needs_review']
+
   - name: department_adoption_weekly
     columns:
       - name: year_cohort
         tests:
           - not_null
       - name: active_students
+        tests:
+          - not_null
+      - name: adoption_rate
+        tests:
+          - not_null
+
+  - name: cohort_engagement_summary
+    columns:
+      - name: year_cohort
+        tests:
+          - not_null
+      - name: persona
         tests:
           - not_null

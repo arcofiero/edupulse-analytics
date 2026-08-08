@@ -99,20 +99,36 @@ class LocalQualityRunner:
     def _gold_checks(self) -> list[QualityCheckResult]:
         root = self.data_dir / "gold"
         scores = load_table(root, "student_engagement_score")
+        risk_signals = load_table(root, "student_risk_signals")
+        interventions = load_table(root, "advisor_intervention_queue")
         content = load_table(root, "course_content_engagement")
+        difficulty = load_table(root, "content_difficulty_index")
         adoption = load_table(root, "department_adoption_weekly")
+        cohorts = load_table(root, "cohort_engagement_summary")
         risk_values = {"low", "medium", "high"}
+        content_health_values = {"healthy", "watch", "needs_review"}
 
         return [
             self._result("gold", "student_scores_not_empty", bool(scores), f"rows={len(scores)}"),
-            self._required_fields("gold", "student_score_fields_present", scores, ("student_id", "engagement_score", "dropout_risk_band")),
+            self._required_fields("gold", "student_score_fields_present", scores, ("student_id", "engagement_score", "risk_score", "dropout_risk_band")),
             self._unique_values("gold", "student_score_student_id_unique", scores, "student_id"),
             self._result("gold", "engagement_scores_non_negative", all(row.get("engagement_score", -1) >= 0 for row in scores), f"rows={len(scores)}"),
+            self._result("gold", "risk_scores_bounded", all(0 <= row.get("risk_score", -1) <= 100 for row in scores), f"rows={len(scores)}"),
             self._result("gold", "risk_bands_valid", all(row.get("dropout_risk_band") in risk_values for row in scores), f"rows={len(scores)}"),
+            self._result("gold", "risk_signals_not_empty", bool(risk_signals), f"rows={len(risk_signals)}"),
+            self._required_fields("gold", "risk_signal_fields_present", risk_signals, ("student_id", "risk_score", "risk_reasons", "recommended_action")),
+            self._result("gold", "intervention_queue_readable", interventions is not None, f"rows={len(interventions)}"),
+            self._required_fields("gold", "intervention_queue_fields_present", interventions, ("queue_rank", "student_id", "recommended_action")),
             self._result("gold", "content_engagement_not_empty", bool(content), f"rows={len(content)}"),
             self._result("gold", "content_event_counts_positive", all(row.get("event_count", 0) > 0 for row in content), f"rows={len(content)}"),
+            self._result("gold", "content_difficulty_not_empty", bool(difficulty), f"rows={len(difficulty)}"),
+            self._result("gold", "difficulty_index_bounded", all(0 <= row.get("difficulty_index", -1) <= 100 for row in difficulty), f"rows={len(difficulty)}"),
+            self._result("gold", "content_health_bands_valid", all(row.get("content_health_band") in content_health_values for row in difficulty), f"rows={len(difficulty)}"),
             self._result("gold", "adoption_not_empty", bool(adoption), f"rows={len(adoption)}"),
             self._result("gold", "adoption_active_students_positive", all(row.get("active_students", 0) > 0 for row in adoption), f"rows={len(adoption)}"),
+            self._result("gold", "adoption_rates_bounded", all(0 <= row.get("adoption_rate", -1) <= 1 for row in adoption), f"rows={len(adoption)}"),
+            self._result("gold", "cohort_summary_not_empty", bool(cohorts), f"rows={len(cohorts)}"),
+            self._required_fields("gold", "cohort_summary_fields_present", cohorts, ("year_cohort", "persona", "avg_engagement_score", "high_risk_rate")),
         ]
 
     def _required_fields(

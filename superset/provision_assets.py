@@ -18,11 +18,33 @@ DATASETS = {
         "chart": "Advisor At-risk Students",
         "columns": [
             "student_id",
+            "queue_rank",
             "year_cohort",
             "persona",
+            "risk_score",
             "engagement_score",
+            "engagement_percentile",
             "dropout_risk_band",
             "needs_advisor_review",
+            "risk_reasons",
+            "recommended_action",
+        ],
+    },
+    "advisor_engagement_signals": {
+        "dashboard": "Advisor Risk Monitor",
+        "chart": "Advisor Engagement Signals",
+        "columns": [
+            "student_id",
+            "year_cohort",
+            "persona",
+            "risk_score",
+            "engagement_percentile",
+            "active_day_count",
+            "attendance_rate",
+            "quiz_accuracy",
+            "late_submission_count",
+            "night_activity_ratio",
+            "recommended_action",
         ],
     },
     "faculty_content_engagement": {
@@ -36,6 +58,22 @@ DATASETS = {
             "engagement_per_student",
         ],
     },
+    "faculty_content_difficulty": {
+        "dashboard": "Faculty Content Engagement",
+        "chart": "Faculty Content Difficulty",
+        "columns": [
+            "course_id",
+            "content_health_band",
+            "difficulty_index",
+            "quiz_accuracy",
+            "quiz_attempts",
+            "quiz_answers",
+            "video_events",
+            "assignment_submits",
+            "forum_events",
+            "unique_students",
+        ],
+    },
     "admin_adoption_weekly": {
         "dashboard": "Department Adoption Weekly",
         "chart": "Department Adoption Weekly",
@@ -43,6 +81,26 @@ DATASETS = {
             "week_start_date",
             "year_cohort",
             "active_students",
+            "observed_students",
+            "adoption_rate",
+            "online_event_count",
+            "offline_event_count",
+        ],
+    },
+    "admin_cohort_engagement_summary": {
+        "dashboard": "Department Adoption Weekly",
+        "chart": "Cohort Engagement Summary",
+        "columns": [
+            "year_cohort",
+            "persona",
+            "student_count",
+            "avg_engagement_score",
+            "avg_risk_score",
+            "high_risk_students",
+            "high_risk_rate",
+            "avg_attendance_rate",
+            "avg_quiz_accuracy",
+            "avg_active_days",
         ],
     },
 }
@@ -95,24 +153,26 @@ def ensure_chart(db, Slice, dataset, chart_name: str, columns: list[str]):
     return chart
 
 
-def ensure_dashboard(db, Dashboard, dashboard_title: str, chart) -> None:
+def ensure_dashboard(db, Dashboard, dashboard_title: str, charts: list) -> None:
     dashboard = (
         db.session.query(Dashboard)
         .filter_by(dashboard_title=dashboard_title)
         .one_or_none()
     )
-    chart_node = f"CHART-{chart.id}"
+    chart_nodes = [f"CHART-{chart.id}" for chart in charts]
     position_json = {
         "DASHBOARD_VERSION_KEY": "v2",
         "ROOT_ID": {"type": "ROOT", "id": "ROOT_ID", "children": ["GRID_ID"]},
-        "GRID_ID": {"type": "GRID", "id": "GRID_ID", "children": [chart_node]},
-        chart_node: {
+        "GRID_ID": {"type": "GRID", "id": "GRID_ID", "children": chart_nodes},
+    }
+    for index, chart in enumerate(charts):
+        chart_node = f"CHART-{chart.id}"
+        position_json[chart_node] = {
             "type": "CHART",
             "id": chart_node,
             "children": [],
-            "meta": {"chartId": chart.id, "height": 50, "width": 12},
-        },
-    }
+            "meta": {"chartId": chart.id, "height": 40, "width": 6 if index else 12},
+        }
 
     if dashboard is None:
         dashboard = Dashboard(dashboard_title=dashboard_title)
@@ -120,7 +180,7 @@ def ensure_dashboard(db, Dashboard, dashboard_title: str, chart) -> None:
 
     dashboard.published = True
     dashboard.position_json = json.dumps(position_json)
-    dashboard.slices = [chart]
+    dashboard.slices = charts
     db.session.flush()
 
 
@@ -132,10 +192,14 @@ def provision() -> None:
     from superset.models.slice import Slice
 
     database = ensure_database(db, Database)
+    charts_by_dashboard = {}
     for table_name, spec in DATASETS.items():
         dataset = ensure_dataset(db, SqlaTable, database, table_name)
         chart = ensure_chart(db, Slice, dataset, spec["chart"], spec["columns"])
-        ensure_dashboard(db, Dashboard, spec["dashboard"], chart)
+        charts_by_dashboard.setdefault(spec["dashboard"], []).append(chart)
+
+    for dashboard_title, charts in charts_by_dashboard.items():
+        ensure_dashboard(db, Dashboard, dashboard_title, charts)
 
     db.session.commit()
     print("Provisioned EduPulse Superset database, datasets, charts, and dashboards.")

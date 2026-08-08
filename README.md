@@ -240,6 +240,18 @@ make dashboards-local
 This prepares Advisor, Faculty, and Admin dashboard datasets plus a manifest under
 `.local/superset`, using the Gold outputs produced by the local pipeline.
 
+**Gold analytics outputs:**
+
+| Model | Analytical purpose |
+|-------|--------------------|
+| `student_engagement_score` | Student-level engagement, risk score, percentile, and explanatory features |
+| `student_risk_signals` | Feature-style risk signals for advisor workflows |
+| `advisor_intervention_queue` | Prioritized outreach queue with recommended action |
+| `course_content_engagement` | Course and event-level engagement intensity |
+| `content_difficulty_index` | Course-level difficulty and content health indicators |
+| `department_adoption_weekly` | Cohort adoption rate and online/offline activity volume |
+| `cohort_engagement_summary` | Cohort/persona benchmarks for program leadership |
+
 ---
 
 ## DLQ Error Taxonomy
